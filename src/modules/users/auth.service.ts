@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
-  authenticateUser(): string {
+  getUserAuthentication(): string {
     return 'Login successful';
   }
 }
