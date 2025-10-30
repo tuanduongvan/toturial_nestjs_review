@@ -6,12 +6,16 @@ import {
   Post,
   Query,
   Headers,
-  BadRequestException,
+  Patch,
+  Header,
+  UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthService } from './auth.service';
-
-const EXPECTED_CONTENT_TYPE = 'application/json';
+import { User } from './user.entity';
+import { ValidateContentTypeGuard } from './validate-content-type.pipe';
+import { DeleteResult } from 'typeorm';
 
 @Controller('users')
 export class UsersController {
@@ -31,29 +35,44 @@ export class UsersController {
     };
   }
 
+  @Get('/all')
+  getAllUsers(): Promise<User[]> {
+    return this.usersService.findAll();
+  }
+
   @Get('/:id')
-  getUserDetail(@Param('id') id: string): string {
-    return 'User detail for user with id: ' + id;
+  async getUserDetail(@Param('id') id: string): Promise<User | null> {
+    return this.usersService.find(+id);
   }
 
-  @Post()
-  createUser(
-    @Body() body: any,
-    @Headers('content-type') contentType: string,
-  ): any {
-    if (!contentType.includes(EXPECTED_CONTENT_TYPE)) {
-      throw new BadRequestException(
-        'Invalid Content-Type. Expected application/json',
-      );
-    }
-    return body;
+  @Patch('/:id')
+  @UseGuards(ValidateContentTypeGuard)
+  @Header('Cache-Control', 'no-store')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() body: { name: string; email: string },
+  ): Promise<User | null> {
+    const user = await this.usersService.update(+id, body);
+    return user;
   }
 
-  @Get()
-  getAllUsers(): string[] {
-    return [
-      this.authService.authenticateUser(),
-      this.usersService.getAllUsers(),
-    ];
+  @Post('/create')
+  @UseGuards(ValidateContentTypeGuard)
+  @Header('Cache-Control', 'no-store')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
+  async createNewUser(
+    @Body() body: { name: string; email: string; password: string },
+  ): Promise<User> {
+    const user = await this.usersService.createUser(body);
+    return user;
+  }
+
+  @Delete('/:id')
+  async deleteUser(@Param('id') id: string): Promise<DeleteResult> {
+    const data = await this.usersService.delete(+id);
+    return data;
   }
 }
