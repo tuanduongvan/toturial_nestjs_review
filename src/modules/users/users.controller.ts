@@ -10,6 +10,8 @@ import {
   Header,
   UseGuards,
   Delete,
+  Req,
+  Logger,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthService } from './auth.service';
@@ -21,6 +23,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
@@ -38,7 +41,9 @@ export class UsersController {
   }
 
   @Get('/all')
-  getAllUsers(): Promise<User[]> {
+  getAllUsers(@Req() request: Request & { user: string }): Promise<User[]> {
+    const safeUser = String(request.user || '').replace(/[\r\n]/g, '');
+    this.logger.log(`Request User: ${safeUser}`);
     return this.usersService.findAll();
   }
 
