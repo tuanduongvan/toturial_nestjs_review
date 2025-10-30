@@ -16,6 +16,8 @@ import { AuthService } from './auth.service';
 import { User } from './user.entity';
 import { ValidateContentTypeGuard } from './validate-content-type.pipe';
 import { DeleteResult } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -52,9 +54,9 @@ export class UsersController {
   @Header('Expires', '0')
   async updateUser(
     @Param('id') id: string,
-    @Body() body: { name: string; email: string },
+    @Body() updateUserDto: UpdateUserDto,
   ): Promise<User | null> {
-    const user = await this.usersService.update(+id, body);
+    const user = await this.usersService.update(+id, updateUserDto);
     return user;
   }
 
@@ -63,10 +65,8 @@ export class UsersController {
   @Header('Cache-Control', 'no-store')
   @Header('Pragma', 'no-cache')
   @Header('Expires', '0')
-  async createNewUser(
-    @Body() body: { name: string; email: string; password: string },
-  ): Promise<User> {
-    const user = await this.usersService.createUser(body);
+  async createNewUser(@Body() createUser: CreateUserDto): Promise<User> {
+    const user = await this.usersService.createUser(createUser);
     return user;
   }
 

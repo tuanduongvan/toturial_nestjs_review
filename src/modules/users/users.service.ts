@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
@@ -15,8 +15,12 @@ export class UsersService {
     return this.userRepository.find();
   }
 
-  find(id: number): Promise<User | null> {
-    return this.userRepository.findOneBy({ id });
+  async find(id: number): Promise<User | null> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
   }
 
   createUser(dataUser: Partial<User>): Promise<User> {
@@ -30,7 +34,11 @@ export class UsersService {
     return this.userRepository.findOneBy({ id });
   }
 
-  delete(id: number): Promise<DeleteResult> {
+  async delete(id: number): Promise<DeleteResult> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
     return this.userRepository.delete(id);
   }
 }
