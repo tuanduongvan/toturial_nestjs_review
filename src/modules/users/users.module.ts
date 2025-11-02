@@ -11,6 +11,7 @@ import { LoggingMiddleware } from 'src/middleware/logging/logging.middleware';
   controllers: [UsersController],
   providers: [UsersService, AuthService, DatabaseService],
   imports: [TypeOrmModule.forFeature([User])],
+  exports: [UsersService],
 })
 export class UsersModule {
   // eslint-disable-next-line @typescript-eslint/naming-convention
