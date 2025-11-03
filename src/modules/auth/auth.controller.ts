@@ -5,6 +5,7 @@ import {
   UseGuards,
   Request,
   Get,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
@@ -32,6 +33,19 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       request.user as { email: string; id: number },
     );
+  }
+
+  @Post('/refresh-token')
+  async refreshToken(@Body() body: { refreshToken: string }): Promise<any> {
+    if (!body.refreshToken) {
+      throw new BadRequestException('Refresh token is required');
+    }
+    const checkRefreshToken = await this.authService.verifyRefreshToken(
+      body.refreshToken,
+    );
+    if (checkRefreshToken) {
+      return await this.authService.loginUser(checkRefreshToken);
+    }
   }
 
   @UseGuards(JwtAuthGuard)

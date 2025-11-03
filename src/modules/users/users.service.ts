@@ -62,4 +62,29 @@ export class UsersService {
     }
     return null;
   }
+
+  async saveRefreshToken(userid: number, refreshToken: string): Promise<void> {
+    const user = await this.userRepository.findOneBy({ id: userid });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    user.refresh_token = hashedRefreshToken;
+    await this.userRepository.save(user);
+  }
+
+  async verifyRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<boolean> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) {
+      return false;
+    }
+    const status = await bcrypt.compare(refreshToken, user.refresh_token);
+    if (status) {
+      return true;
+    }
+    return false;
+  }
 }
